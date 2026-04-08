@@ -15,6 +15,27 @@ The engine has shattered the initial target of 100K TPS, achieving over **24 Mil
 
 ---
 
+## 🏃 Quick Start (Apple Silicon / M4 Pro)
+
+Follow these steps to reproduce the 24M+ TPS benchmark on your local machine.
+
+### 1. Generate Synthetic Data
+```bash
+python3 generate_data.py
+```
+
+### 2. Compile with M4 Pro Optimizations
+```bash
+g++ -O3 -std=c++20 -mcpu=native -flto main.cpp -o auction_bench
+```
+
+### 3. Run the Integrated Pipeline
+```bash
+./auction_bench
+```
+
+---
+
 ## 🛠️ Architectural Core Values
 
 ### 1. Zero-Copy & Zero-Allocation Path
