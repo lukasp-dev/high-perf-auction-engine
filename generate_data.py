@@ -2,7 +2,7 @@ import random
 import csv
 import time
 
-def generate_data(num_artworks=10000, num_bids=1000000):
+def generate_data(num_artworks=10000, num_bids=10000000):
     artworks = []
     artwork_ids = []
     

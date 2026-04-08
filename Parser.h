@@ -9,17 +9,38 @@ namespace Auction {
 class Parser {
 public:
     /**
+     * @brief [HFT optimization] Fast, zero-allocation float-to-double converter.
+     * Needed because Apple Clang doesn't support std::from_chars<double> yet.
+     */
+    static double fast_atof(std::string_view sv) {
+        double val = 0.0;
+        double factor = 1.0;
+        bool decimal = false;
+        for (char c : sv) {
+            if (c == '.') {
+                decimal = true;
+                continue;
+            }
+            if (!decimal) {
+                val = val * 10.0 + (c - '0');
+            } else {
+                factor *= 0.1;
+                val += (c - '0') * factor;
+            }
+        }
+        return val;
+    }
+
+    /**
      * @brief Parses a CSV line into a Bid struct.
      * Format: artwork_id,bidder_id,price,timestamp
      * This is "Zero-Copy" because we never create a new std::string.
-     * 
-     * The objection of this function is to correctly identify and fill values into the Bid struct.
      */
     static std::optional<Bid> parseBid(std::string_view line) {
         Bid bid;
         
         // STEP 1 -- Find Artwork ID --
-        if (auto pos = line.find(','); pos != std::string_view::npos) { // 초기화 구문 C++17 부터 도입 if([초기화];[조건식])
+        if (auto pos = line.find(','); pos != std::string_view::npos) {
             bid.artwork_id = line.substr(0, pos);
             line.remove_prefix(pos + 1);
         } else return std::nullopt;
@@ -31,27 +52,10 @@ public:
         } else return std::nullopt;
 
         // STEP 3 -- Parse the Price (double) --
-        /**
-         * 1) 정수형 from_chars() 의 경우
-         * [function definition]
-         * std::from_chars_result from_chars( const char* first, 
-         *                        const char* last, 
-         *                        TYPE& value, 
-         *                        int base = 10 );
-         * 
-         * [the return type]
-         * struct from_chars_result {
-         *       const char* ptr;
-         *       std::errc ec;
-         * };
-         */
         if (auto pos = line.find(','); pos != std::string_view::npos) {
             std::string_view price_str = line.substr(0, pos);
-            auto [ptr, ec] = std::from_chars(price_str.data(),                     // character `begin` pointer
-                                             price_str.data() + price_str.size(),  // the `end` of the char pointer
-                                             bid.price);                           // 세번 째 인자 == 값을 저장할 변수
-    
-            if (ec != std::errc{}) return std::nullopt;                            // 값 없음(std::nullop)
+            // Use fast_atof instead of std::from_chars for Apple Silicon compatibility
+            bid.price = fast_atof(price_str);
             line.remove_prefix(pos + 1);
         } else return std::nullopt;
 
@@ -87,10 +91,8 @@ public:
         // STEP 3 -- Royalty (double) --
         if (auto pos = line.find(','); pos != std::string_view::npos) {
             std::string_view royalty_str = line.substr(0, pos);
-            auto [ptr, ec] = std::from_chars(royalty_str.data(),
-                                             royalty_str.data() + royalty_str.size(),
-                                             art.royalty);
-            if (ec != std::errc{}) return std::nullopt;
+            // Use fast_atof instead of std::from_chars for Apple Silicon compatibility
+            art.royalty = fast_atof(royalty_str);
             line.remove_prefix(pos + 1);
         } else return std::nullopt;
 
