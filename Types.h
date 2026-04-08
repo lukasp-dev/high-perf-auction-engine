@@ -20,6 +20,19 @@ struct alignas(64) Bid {
     // Total size: 48 bytes. alignas(64) pads this to 64 bytes.
 };
 
+/**
+ * [INTERVIEW TIP]
+ * Why TradeEvent?
+ * In HFT, we don't just care about the final winner. 
+ * We need to record every price jump (Trade Tape) for market analysis.
+ */
+struct alignas(64) TradeEvent {
+    std::string_view artwork_id;
+    std::string_view winner_id;
+    double price{0.0};
+    uint64_t timestamp{0};
+};
+
 // Reference data: Read-mostly. 
 // Not aligned to maximize Spatial Locality (fitting more in one cache line).
 struct Artwork {
