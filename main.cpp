@@ -4,8 +4,11 @@
 #include <string>
 #include <chrono>
 #include <iomanip>
+#include <thread>
+#include <atomic>
 #include "Parser.h"
 #include "AuctionEngine.h"
+#include "WebSocketServer.h"
 
 using namespace std;
 using namespace Auction;
@@ -14,7 +17,25 @@ using namespace Auction;
  * [Lukas Standard] 
  * Full Pipeline Benchmark: Parsing -> Matching -> Recording
  */
-int main() {
+int main(int argc, char* argv[]) {
+    bool server_mode = false;
+    for (int i = 1; i < argc; i++) {
+        if (std::string(argv[i]) == "--server" || std::string(argv[i]) == "-s") {
+            server_mode = true;
+        }
+    }
+
+    if (server_mode) {
+        AuctionEngine engine;
+        engine.init(100000);
+        
+        WebSocketServer server(engine, 9001);
+        server.run();
+        
+        std::cin.get();
+        return 0;
+    }
+
     const std::string filename = "bids.csv";
     std::vector<std::string> lines;
     lines.reserve(10000000); // Reserve for 10M entries

@@ -21,8 +21,9 @@ public:
 
     /**
      * @brief [The Hot Path] Dispatches a parsed bid to its respective OrderBook.
+     * @return true if the bid became the new high bid.
      */
-    void processBid(const Bid& bid) {
+    bool processBid(const Bid& bid) {
         // 1. Dispatch to OrderBook (O(1))
         auto& book = books[bid.artwork_id];
         
@@ -31,7 +32,9 @@ public:
             // 3. Record Trade Event (New Best Bid)
             // Using push_back with {} for reliable aggregate initialization on Apple Clang
             trade_tape.push_back({bid.artwork_id, bid.bidder_id, bid.price, bid.timestamp});
+            return true;
         }
+        return false;
     }
 
     const std::vector<TradeEvent>& getTradeTape() const { return trade_tape; }

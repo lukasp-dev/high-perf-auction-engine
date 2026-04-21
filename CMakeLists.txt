@@ -5,6 +5,9 @@ project(DigitalArtAuctionEngine LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Find uWebSockets
+find_package(uWebSockets REQUIRED)
+
 # Optimization flags for Apple Silicon (M4 Pro)
 if(APPLE)
     add_compile_options(
@@ -22,6 +25,7 @@ include_directories(.)
 
 # Main executable setup
 add_executable(auction_bench main.cpp)
+target_link_libraries(auction_bench uWebSockets::uWebSockets)
 
 # Build summary output
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
